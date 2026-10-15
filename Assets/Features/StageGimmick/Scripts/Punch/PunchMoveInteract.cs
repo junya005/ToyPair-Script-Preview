@@ -8,6 +8,22 @@ public class PunchMoveInteract : MonoBehaviour, IInteractable
     [SerializeField, Tooltip("パンチ操作のハンドラを設定してください")]
     private PunchMoveHandler _punchMoveHandler;
 
+    [SerializeField] private InteractPopUpGuid interactPopUpGuid;
+
+    [SerializeField] private GameObject _player1;
+    [SerializeField] private GameObject _player2;
+
+    [SerializeField] private GameObject _moveTarget;
+
+    [SerializeField] private PlayerHandle _player1Handle;
+    [SerializeField] private PlayerHandle _player2Handle;
+
+    [SerializeField] private PlayerController _player1Controller;
+    [SerializeField] private PlayerController _player2Controller;
+
+    [SerializeField] private PhysicsLocomotion _player1PhysicsLocomotion;
+    [SerializeField] private PhysicsLocomotion _player2PhysicsLocomotion;
+
     private bool _isControl = false;
 
     public void OnInteract()
@@ -23,13 +39,87 @@ public class PunchMoveInteract : MonoBehaviour, IInteractable
         if (_isControl == true)
         {
             InputManager.Instance?.ResetHandle(playerIndex);
+            if(playerIndex == 0)
+            {
+                interactPopUpGuid?.Player1Hit();
+                EnablePlayerMove(_player1Handle);
+                _player1Controller.RestartMove();
+            }
+            else
+            {
+                interactPopUpGuid?.Player2Hit();
+                EnablePlayerMove(_player2Handle);
+                _player2Controller.RestartMove();
+            }
             _isControl = false;
         }
         else if (_punchMoveHandler != null && _isControl == false)
         {
             InputManager.Instance?.SetCurrentHandle(playerIndex, _punchMoveHandler);
             _punchMoveHandler.SetControlPlayerIndex(playerIndex);
+            if(playerIndex == 0)
+            {
+                interactPopUpGuid?.Player1Hit();
+                _player1PhysicsLocomotion.Stop();
+                DisablePlayerMove(_player1Handle);
+                _player1Controller.ResetPhysicsValues();
+                MoveTarget(playerIndex);
+            }
+            else
+            {
+                interactPopUpGuid?.Player2Hit();
+                _player2PhysicsLocomotion.Stop();
+                DisablePlayerMove(_player2Handle);
+                _player2Controller.ResetPhysicsValues();
+                MoveTarget(playerIndex);
+            }
             _isControl = true;
         }
+    }
+
+    private void MoveTarget(int index)
+    {
+        if (index == 0)
+        {
+            _player1.transform.position = _moveTarget.transform.position;
+        }
+        else if(index == 1)
+        {
+            _player2.transform.position= _moveTarget.transform.position;
+        }
+    }
+
+
+    // ガイド表示のため
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player1") || other.CompareTag("Player2"))
+        {
+            interactPopUpGuid?.PlayerHit();
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player1") || other.CompareTag("Player2"))
+        {
+            interactPopUpGuid?.Reset();
+        }
+    }
+
+    private void DisablePlayerMove(PlayerHandle handle)
+    {
+        handle.SetEnableInput(PlayerHandle.PlayerInputType.Move, false);
+        handle.SetEnableInput(PlayerHandle.PlayerInputType.Jump, false);
+        handle.SetEnableInput(PlayerHandle.PlayerInputType.Brake, false);
+        handle.SetEnableInput(PlayerHandle.PlayerInputType.ChargeDush, false);
+    }
+
+    private void EnablePlayerMove(PlayerHandle handle)
+    {
+        handle.SetEnableInput(PlayerHandle.PlayerInputType.Move, true);
+        handle.SetEnableInput(PlayerHandle.PlayerInputType.Jump, true);
+        handle.SetEnableInput(PlayerHandle.PlayerInputType.Brake, true);
+        handle.SetEnableInput(PlayerHandle.PlayerInputType.ChargeDush, true);
     }
 }

@@ -40,10 +40,10 @@ public class PlayerEffect : MonoBehaviour
 
     private void OnDestroy()
     {
-        foreach (var data in _effectDataList)
+        /*foreach (var data in _effectDataList)
         {
             ClearEffect(data.id);
-        }
+        }*/
     }
 
     /// <summary>

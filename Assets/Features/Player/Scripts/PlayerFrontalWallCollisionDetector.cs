@@ -7,13 +7,13 @@ using System;
 public class PlayerFrontalWallCollisionDetector : MonoBehaviour
 {
     public bool IsCollition { get; private set; }
-
-    private Vector3 direction;
-
     private Rigidbody _rb;
 
     [Header("パラメーター")]
-    [SerializeField, Tooltip("床までの判定の長さを設定してください")]
+    [SerializeField, Tooltip("対象レイヤー")]
+    private LayerMask _targetLayer;
+
+    [SerializeField, Tooltip("壁までの判定の長さを設定してください")]
     private float _rayDistance = 1.0f;
 
     void Awake()
@@ -32,9 +32,12 @@ public class PlayerFrontalWallCollisionDetector : MonoBehaviour
 
         // 水平な壁に激突したかを計算
         bool isHorizontal = false;
-        if (Physics.Raycast(this.transform.position, velocityXZ.normalized, out var hit, _rayDistance))
+        if (Physics.Raycast(this.transform.position, velocityXZ.normalized, out var hit, _rayDistance, _targetLayer))
         {
-            isHorizontal = Mathf.Abs(Vector3.Dot(hit.normal, Vector3.up)) > 0.99f;
+            if(hit.collider.isTrigger == false)
+            {
+                isHorizontal = Mathf.Abs(Vector3.Dot(hit.normal, Vector3.up)) < 0.1f;
+            }
         }
 
         IsCollition = isHorizontal;

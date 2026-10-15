@@ -148,6 +148,11 @@ public class PlayerController : MonoBehaviour, IGetPlayerStatus
             _playerView.PlayEffectForDuration("EF_Player_Dash_Windbreak", dushSec);
         };
 
+        _checkGround.OnAirborne +=() =>
+        {
+            _playerView.SetAnimTrigger("Jump");
+        };
+
         // プレイヤー操作の処理を登録
         SubscribeInputProcess();
 
@@ -170,12 +175,14 @@ public class PlayerController : MonoBehaviour, IGetPlayerStatus
             _playerView.StartLoopEffect("EF_Player_WalkSmoke");
         }
 
-        // エフェクトの方向をセット
+        _playerView.SetMoveInputValueToCharacterHead(_moveInput);
         Vector3 headDirection = _playerView.GetHeadDerection();
         Quaternion effectRot = Quaternion.Euler(
             Quaternion.LookRotation(headDirection).eulerAngles +
             new Vector3(0, -90, 0)
             );
+
+        // エフェクトの方向をセット
         _playerView.SetEffectLocalRotation("EF_Player_Dash_Activate", effectRot);
         _playerView.SetEffectLocalRotation("EF_Player_Dash_Windbreak", effectRot);
     }
@@ -299,7 +306,6 @@ public class PlayerController : MonoBehaviour, IGetPlayerStatus
             if (jumpInput)
             {
                 _jumpInput = true;
-                _playerView.SetAnimTrigger("Jump");
             }
         };
 
@@ -337,7 +343,12 @@ public class PlayerController : MonoBehaviour, IGetPlayerStatus
 
         _playerHandle.OnInteractInputChanged += (interactInput) =>
         {
-            if (interactInput) { _interactInput = true; }
+            Debug.Log($"Interact Input : {interactInput} frame:{Time.frameCount}");
+
+            if (interactInput)
+            {
+                _interactInput = true;
+            }
         };
     }
 
@@ -491,14 +502,14 @@ public class PlayerController : MonoBehaviour, IGetPlayerStatus
             if (!_checkGround.IsGrounded) { return; }
             if (_chargeDush.IsDushing) { return; }
 
-            if (_playerInteract.Execute() && _playerInteract.Execute(PlayerIndex))
+            if (/*_playerInteract.Execute() &&*/ _playerInteract.Execute(PlayerIndex))
             {
                 _playerView.PlaySoundsOneShot(PlayerSounds.SoundType.Interact);
 
                 //_playerHandle.DisableInput();
                 Debug.Log("インタラクト実行");
                 // 木村が修正　インタラクト解除を可能にするため
-                if (_playerHandle.IsEnableInput)
+                /*if (_playerHandle.IsEnableInput)
                 {
                     _playerHandle.DisableInput();
                 }
@@ -506,7 +517,7 @@ public class PlayerController : MonoBehaviour, IGetPlayerStatus
                 {
                     _playerHandle.EnableInput();
                     RestartMove();
-                }
+                }*/
 
                 ResetInputValues();
             }
@@ -554,8 +565,8 @@ public class PlayerController : MonoBehaviour, IGetPlayerStatus
 
         // 木村が追加
         // 死亡の回数をカウントする処理を追加
-        if(_playerManager != null)
-        _playerManager.IncrementDieCount(gameObject.tag);
+        if (_playerManager != null)
+            _playerManager.IncrementDieCount(gameObject.tag);
 
         _playerView.PlaySoundsOneShot(PlayerSounds.SoundType.Death);
 
@@ -570,6 +581,8 @@ public class PlayerController : MonoBehaviour, IGetPlayerStatus
         _playerView.EnableMesh(false);
         _playerView.SetEnablePlayerSubMesh(false);
         _playerHandle.DisableInput();
+        _velocityBrake.StopBraking();
+        _chargeDush.CancelChargeDush();
         _physicsLocomotion.Stop();
         _playerView.PlayDeathAnimationAsync(2.0f, cb, cancellationToken).Forget();
     }

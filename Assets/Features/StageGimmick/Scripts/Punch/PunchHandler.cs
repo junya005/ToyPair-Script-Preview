@@ -8,6 +8,9 @@ public class PunchHandler : MonoBehaviour, IPlayerHandle
     [SerializeField, Tooltip("パンチの操作ハンドラを設定")]
     private PunchAction _punchAction;
 
+    [SerializeField] private PlayerSpin _player1Spin;
+    [SerializeField] private PlayerSpin _player2Spin;
+
     // インタラクト解除のためにプレイヤーのIndex情報を保存
     private int _controlPlayerIndex;
 
@@ -41,6 +44,15 @@ public class PunchHandler : MonoBehaviour, IPlayerHandle
         {
             // パンチを実行
             _punchAction?.Punch();
+
+            if (_controlPlayerIndex == 0)
+            {
+                _player1Spin.Execute();
+            }
+            else
+            {
+                _player2Spin?.Execute();
+            }
         }
     }
 

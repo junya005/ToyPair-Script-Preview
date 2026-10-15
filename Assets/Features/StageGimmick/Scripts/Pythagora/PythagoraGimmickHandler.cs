@@ -6,6 +6,9 @@ public class PythagoraGimmickHandler : MonoBehaviour, IPlayerHandle
     [SerializeField, Tooltip("デバックコントロールを有効化する")]
     private bool _useDebbugControl = false;
 
+    [SerializeField] private PlayerSpin _player1Spin;
+    [SerializeField] private PlayerSpin _player2Spin;
+
     private int _controlPlayerIndex;
 
     public event Action OnJumpInput;
@@ -40,6 +43,14 @@ public class PythagoraGimmickHandler : MonoBehaviour, IPlayerHandle
     {
         if (jumpInput)
             OnJumpInput?.Invoke();
+
+        /*if(_controlPlayerIndex == 0)
+        {
+            _player1Spin.Execute();
+        }else if(_controlPlayerIndex == 1)
+        {
+            _player2Spin.Execute();
+        }*/
     }
 
     /// <summary>

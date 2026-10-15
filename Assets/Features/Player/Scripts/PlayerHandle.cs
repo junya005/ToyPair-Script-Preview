@@ -23,6 +23,7 @@ public class PlayerHandle : MonoBehaviour, IPlayerHandle, IInputGetter
     private bool _useDebbugControl = false;
 
     [Header("パラメーター")]
+    [SerializeField, Tooltip("ジャイロのデットゾーン（入力有効の閾値）")]
     private float _deadZone = 0.1f;
 
     public Vector2 MoveInput { get; private set; } = Vector2.zero;
@@ -211,8 +212,6 @@ public class PlayerHandle : MonoBehaviour, IPlayerHandle, IInputGetter
     /// <param name="brakeInputRelesed">入力値</param>
     public void SetBrakeInputRelesed(bool brakeInputRelesed)
     {
-        if (!_enableInputs[PlayerInputType.Brake]) { return; }
-
         if (!brakeInputRelesed) { return; }
 
         var action = OnBrakeInputRelesed;
@@ -253,8 +252,6 @@ public class PlayerHandle : MonoBehaviour, IPlayerHandle, IInputGetter
     /// <param name="chargeDushInputRelesed">入力値</param>
     public void SetChargeDushInputRelesed(bool chargeDushInputRelesed)
     {
-        if (!_enableInputs[PlayerInputType.ChargeDush]) { return; }
-
         if (!chargeDushInputRelesed) { return; }
 
         var action = OnChargeDushInputRelesed;

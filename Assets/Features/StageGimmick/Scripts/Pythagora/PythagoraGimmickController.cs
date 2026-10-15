@@ -15,6 +15,8 @@ public class PythagoraGimmickController : MonoBehaviour
 
     private float _intervalTime;
 
+    [SerializeField] private AnimationSE se;
+
     private void Awake()
     {
         _handler = this.GetComponent<PythagoraGimmickHandler>();
@@ -49,6 +51,7 @@ public class PythagoraGimmickController : MonoBehaviour
     {
         StartInterval();
 
+        se.PlaySE(1);
         foreach (var door in _doors)
         {
             door.Switch();

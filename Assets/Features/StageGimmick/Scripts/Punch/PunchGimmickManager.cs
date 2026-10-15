@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using UnityEngine.Events;
 
 /// <summary>
 /// パンチギミック全体を制御するクラス
@@ -13,13 +14,13 @@ public class PunchGimmickManager : MonoBehaviour
 
     public event Action AllPushedSwitchEvent;
 
-    [SerializeField] private TwoSwitchGImmickOnlyWall onlyWall;
+    [SerializeField] private UnityEvent Clear;
 
 
     private void Start()
     {
-        if (onlyWall != null)
-            AllPushedSwitchEvent += onlyWall.Hide;
+        if (Clear != null)
+            AllPushedSwitchEvent += () => Clear.Invoke();
 
         foreach (var punchSwitch in _punchSwitches)
         {

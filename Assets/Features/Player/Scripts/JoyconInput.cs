@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[DefaultExecutionOrder(-100)]
 public class JoyconInput : MonoBehaviour, IPlayerInput
 {
-    // 木村が修正
-    //private Joycon j1, j2;
 
+    private Joycon j1, j2;
     private Joycon _leftJoycon;
     private Joycon _rightJoycon;
+
 
     private Dictionary<int, Quaternion> _currentCenter = new Dictionary<int, Quaternion>();
 
@@ -45,8 +46,17 @@ public class JoyconInput : MonoBehaviour, IPlayerInput
     {
         var joycons = JoyconManager.Instance.j;
 
+
+        j1 = null; j2 = null;
         _leftJoycon = null;
         _rightJoycon = null;
+
+#if PRO_CON
+
+        j1 = joycons[0];
+        j2 = joycons[1];
+
+#else
 
         foreach (var joycon in joycons)
         {
@@ -55,6 +65,8 @@ public class JoyconInput : MonoBehaviour, IPlayerInput
             else
                 _rightJoycon = joycon;
         }
+
+#endif
     }
 
     /// <summary>
@@ -103,12 +115,18 @@ public class JoyconInput : MonoBehaviour, IPlayerInput
     /// <param name="playerIndex">プレイヤーのインデックス</param>
     private void CheckInput(int playerIndex)
     {
+
+        // どちらのジョイコンかを判別
+#if PRO_CON
+        if (JoyConUtils.CheckConnection(j1, j2))
+        {
+
+            Joycon j = playerIndex == 0 ? j1 : j2;
+#else
         if (JoyConUtils.CheckConnection(_leftJoycon, _rightJoycon))
         {
-            // どちらのジョイコンかを判別
             Joycon j = playerIndex == 0 ? _leftJoycon : _rightJoycon;
-            //Debug.Log(j);
-            //Joycon j = playerIndex == 0 ? j1 : j2;
+#endif
 
             // JoyConの傾きを計算
             Quaternion joyRotation = j.GetVector();
@@ -117,50 +135,109 @@ public class JoyconInput : MonoBehaviour, IPlayerInput
             Quaternion relativeRot = Quaternion.Inverse(_currentCenter[playerIndex]) * joyRotation;
             Vector3 tilt = relativeRot * Vector3.up;
 
-#if ALPHABAN
             // elseでプレイヤーが登録されていなかった時に登録処理を行う
 
             // 傾きリセット入力
             if (ResetSlopeInput.ContainsKey(playerIndex))
             {
+#if PRO_CON
+                Joycon.Button inputButton = Joycon.Button.X;
+#else
                 Joycon.Button inputButton = playerIndex == 0 ? Joycon.Button.DPAD_RIGHT : Joycon.Button.DPAD_LEFT;
-                ResetSlopeInput[playerIndex] = j.GetButtonDown(inputButton);
 
+#endif
+                ResetSlopeInput[playerIndex] = j.GetButtonDown(inputButton);
             }
             else
             {
+#if PRO_CON
+                Joycon.Button inputButton = Joycon.Button.X;
+#else
                 Joycon.Button inputButton = playerIndex == 0 ? Joycon.Button.DPAD_RIGHT : Joycon.Button.DPAD_LEFT;
+
+#endif
                 ResetSlopeInput.Add(playerIndex, j.GetButtonDown(inputButton));
             }
 
             // 移動入力
             if (MoveInputVector.ContainsKey(playerIndex))
             {
+#if PRO_CON
+                float x = -tilt.z;
+                float y = tilt.x;
+
+                MoveInputVector[playerIndex] = new Vector2(y, -x);
+#else
                 float x = playerIndex == 0 ? -tilt.z : tilt.z;
                 float y = playerIndex == 0 ? tilt.x : -tilt.x;
 
                 MoveInputVector[playerIndex] = new Vector2(x, y);
+#endif
             }
             else
             {
+#if PRO_CON
+                float x = -tilt.z;
+                float y = tilt.x;
+
+                MoveInputVector[playerIndex] = new Vector2(y, -x);
+#else
                 float x = playerIndex == 0 ? -tilt.z : tilt.z;
                 float y = playerIndex == 0 ? tilt.x : -tilt.x;
 
-                MoveInputVector.Add(playerIndex, new Vector2(x, y));
+                MoveInputVector[playerIndex] = new Vector2(x, y);
+#endif
             }
 
             // ジャンプ入力
             if (JumpInput.ContainsKey(playerIndex))
             {
+#if PRO_CON
+                Joycon.Button inputButton = Joycon.Button.B;
+#else
                 Joycon.Button inputButton = playerIndex == 0 ? Joycon.Button.DPAD_LEFT : Joycon.Button.DPAD_RIGHT;
+#endif
+
                 JumpInput[playerIndex] = j.GetButtonDown(inputButton);
             }
             else
             {
+#if PRO_CON
+                Joycon.Button inputButton = Joycon.Button.B;
+#else
                 Joycon.Button inputButton = playerIndex == 0 ? Joycon.Button.DPAD_LEFT : Joycon.Button.DPAD_RIGHT;
+#endif
                 JumpInput.Add(playerIndex, j.GetButtonDown(inputButton));
             }
 
+
+#if PRO_CON
+
+            // ブレーキ入力
+            if (BrakeInput.ContainsKey(playerIndex))
+            {
+                BrakeInput[playerIndex] = j.GetButtonDown(Joycon.Button.L)
+                || j.GetButtonDown(Joycon.Button.R);
+            }
+            else
+            {
+                BrakeInput.Add(playerIndex, j.GetButtonDown(Joycon.Button.L)
+                || j.GetButtonDown(Joycon.Button.R));
+            }
+
+            // ブレーキ離す入力
+            if (BrakeReleaseInput.ContainsKey(playerIndex))
+            {
+                BrakeReleaseInput[playerIndex] = j.GetButtonUp(Joycon.Button.L)
+                || j.GetButtonUp(Joycon.Button.R);
+            }
+            else
+            {
+                BrakeReleaseInput.Add(playerIndex, j.GetButtonUp(Joycon.Button.L)
+                || j.GetButtonUp(Joycon.Button.R));
+            }
+
+#else
             // ブレーキ入力
             if (BrakeInput.ContainsKey(playerIndex))
             {
@@ -184,41 +261,68 @@ public class JoyconInput : MonoBehaviour, IPlayerInput
                 BrakeReleaseInput.Add(playerIndex, j.GetButtonUp(Joycon.Button.SL)
                 || j.GetButtonUp(Joycon.Button.SR));
             }
+#endif
 
             // チャージダッシュ入力
             if (ChargeDushInput.ContainsKey(playerIndex))
             {
+#if PRO_CON
+                Joycon.Button inputButton = Joycon.Button.Y;
+#else
                 Joycon.Button inputButton = playerIndex == 0 ? Joycon.Button.DPAD_UP : Joycon.Button.DPAD_DOWN;
+#endif
+
                 ChargeDushInput[playerIndex] = j.GetButtonDown(inputButton);
             }
             else
             {
+#if PRO_CON
+                Joycon.Button inputButton = Joycon.Button.Y;
+#else
                 Joycon.Button inputButton = playerIndex == 0 ? Joycon.Button.DPAD_UP : Joycon.Button.DPAD_DOWN;
+#endif
                 ChargeDushInput.Add(playerIndex, j.GetButtonDown(inputButton));
             }
 
             // チャージダッシュ離す入力
             if (ChargeDushReleaseInput.ContainsKey(playerIndex))
             {
+#if PRO_CON
+                Joycon.Button inputButton = Joycon.Button.Y;
+#else
                 Joycon.Button inputButton = playerIndex == 0 ? Joycon.Button.DPAD_UP : Joycon.Button.DPAD_DOWN;
+#endif
                 ChargeDushReleaseInput[playerIndex] = j.GetButtonUp(inputButton);
             }
             else
             {
+#if PRO_CON
+                Joycon.Button inputButton = Joycon.Button.Y;
+#else
                 Joycon.Button inputButton = playerIndex == 0 ? Joycon.Button.DPAD_UP : Joycon.Button.DPAD_DOWN;
+#endif
                 ChargeDushReleaseInput.Add(playerIndex, j.GetButtonUp(inputButton));
             }
 
             // インタラクト入力
             if (InteractInput.ContainsKey(playerIndex))
             {
+#if PRO_CON
+                Joycon.Button inputButton = Joycon.Button.A;
+#else
                 Joycon.Button inputButton = playerIndex == 0 ? Joycon.Button.DPAD_DOWN : Joycon.Button.DPAD_UP;
+#endif
+
                 InteractInput[playerIndex] = j.GetButtonDown(inputButton);
                 //Debug.Log($"Interact({playerIndex}) : {InteractInput[playerIndex]}");
             }
             else
             {
+#if PRO_CON
+                Joycon.Button inputButton = Joycon.Button.A;
+#else
                 Joycon.Button inputButton = playerIndex == 0 ? Joycon.Button.DPAD_DOWN : Joycon.Button.DPAD_UP;
+#endif
                 InteractInput.Add(playerIndex, j.GetButtonDown(inputButton));
                 //Debug.Log($"Interact({playerIndex}) : {InteractInput[playerIndex]}");
             }
@@ -238,9 +342,6 @@ public class JoyconInput : MonoBehaviour, IPlayerInput
                 if (_currentCenter[playerIndex].w != 1.0f)
                     ResetSlopeRequest[playerIndex] = false;
             }
-
-#endif
-
         }
     }
 

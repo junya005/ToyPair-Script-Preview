@@ -8,6 +8,9 @@ public class PunchMoveHandler : MonoBehaviour, IPlayerHandle
     [SerializeField, Tooltip("土台移動コンポーネント")]
     private PunchMove _punchMove;
 
+    [SerializeField] private PlayerSpin _player1Spin;
+    [SerializeField] private PlayerSpin _player2Spin;
+
     // インタラクト解除のためにプレイヤーのIndex情報を保存
     private int _controlPlayerIndex;
 
@@ -36,6 +39,14 @@ public class PunchMoveHandler : MonoBehaviour, IPlayerHandle
         {
             // 移動を実行
             _punchMove?.Move();
+            if(_controlPlayerIndex == 0)
+            {
+                _player1Spin.Execute();
+            }
+            else
+            {
+                _player2Spin?.Execute();
+            }
         }
     }
 

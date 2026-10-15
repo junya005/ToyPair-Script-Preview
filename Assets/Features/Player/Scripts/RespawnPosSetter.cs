@@ -11,6 +11,9 @@ public class RespawnPosSetter : MonoBehaviour
     [SerializeField, Tooltip("リスポーン地点にあるオブジェクトを設定してください")]
     private List<Transform> _respawnPosList = new List<Transform>();
 
+    private bool _hitPlayer1 = false;
+    private bool _hitPlayer2 = false;
+
     void OnTriggerEnter(Collider other)
     {
         // 当たったオブジェクトがリスポーン可能なコンポーネントを搭載しているかチェック
@@ -34,6 +37,25 @@ public class RespawnPosSetter : MonoBehaviour
             if (targetPos == this.transform.position) { return; }
 
             component.SetRespawnPoint(targetPos);
+        }
+
+        if (other.CompareTag("Player1"))
+        {
+            _hitPlayer1 = true;
+
+            if(_hitPlayer1 && _hitPlayer2)
+            {
+                this.gameObject.SetActive(false);
+            }
+        }
+
+        if (other.CompareTag("Player2"))
+        {
+            _hitPlayer2 = true;
+            if (_hitPlayer1 && _hitPlayer2)
+            {
+                this.gameObject.SetActive(false);
+            }
         }
     }
 }

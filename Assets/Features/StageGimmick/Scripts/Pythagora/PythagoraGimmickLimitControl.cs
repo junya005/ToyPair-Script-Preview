@@ -6,6 +6,9 @@ public class PythagoraGimmickLimitControl : MonoBehaviour
     [SerializeField]
     private float _force = 1.0f;
 
+    [SerializeField]
+    private float _gravity = -0.2f;
+
     private List<PlayerController> _rbs = new List<PlayerController>();
 
     private Vector3 _slopeDownDir;
@@ -17,7 +20,7 @@ public class PythagoraGimmickLimitControl : MonoBehaviour
 
         foreach (var rb in _rbs)
         {
-            Vector3 dir = new Vector3(_slopeDownDir.x, 0, _slopeDownDir.z);
+            Vector3 dir = new Vector3(_slopeDownDir.x, _gravity, _slopeDownDir.z);
             rb.AddForce(dir * _force, ForceMode.VelocityChange);
         }
     }

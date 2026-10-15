@@ -178,4 +178,9 @@ public class PlayerView : MonoBehaviour
     {
         _playerEffect.SetEffectLocalRotation(id, rotation);
     }
+
+    public void SetMoveInputValueToCharacterHead(Vector2 value)
+    {
+        _characterHeadView.SetCurrentMoveInputValue(value);
+    }
 }

@@ -31,6 +31,8 @@ public class PunchAction : MonoBehaviour
 
     [SerializeField] private PunchGimmickPusher punchGimmickPusher;
 
+    [SerializeField] private AnimationSE sE;
+
     void Awake()
     {
         _rb = GetComponent<Rigidbody>();
@@ -120,6 +122,8 @@ public class PunchAction : MonoBehaviour
         float startPosY = _initPos.y;
         float targetPosY = _initPos.y + _maxOffset;
         float time = 0.0f;
+
+        sE.PlaySE(1);
 
         while (time < beforeDuration)
         {

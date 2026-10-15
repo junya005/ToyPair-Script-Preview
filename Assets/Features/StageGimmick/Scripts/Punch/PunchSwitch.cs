@@ -19,6 +19,8 @@ public class PunchSwitch : MonoBehaviour, IPushAble
 
     private bool _isPushed = false;
 
+    [SerializeField] private AnimationSE se;
+
     /// <summary>
     /// 押されているかをチェックする
     /// </summary>
@@ -43,7 +45,7 @@ public class PunchSwitch : MonoBehaviour, IPushAble
     public void Push()
     {
         if (_isPushed) { return; }
-
+        se.PlaySE(0);
         Action cb = () =>
         {
             _isPushed = true;

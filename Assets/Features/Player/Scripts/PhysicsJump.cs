@@ -30,7 +30,7 @@ public class PhysicsJump : MonoBehaviour
         if (_rb == null)
             _rb = GetComponent<Rigidbody>();
 
-        if (_rb == null)
+        if (_checkGround == null)
             _checkGround = GetComponent<CheckGround>();
     }
 
